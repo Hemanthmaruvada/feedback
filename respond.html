@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%); min-height: 100vh; }
+        .form-card { max-width: 650px; margin: 40px auto; }
+        .form-header { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 28px; border-radius: 12px 12px 0 0; }
+        .question-card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,.07); }
+        .rating-stars label { font-size: 2rem; cursor: pointer; color: #d1d5db; transition: color .2s; }
+        .rating-stars input:checked ~ label, .rating-stars label:hover,
+        .rating-stars label:hover ~ label { color: #f59e0b; }
+        .rating-stars { display: flex; flex-direction: row-reverse; justify-content: flex-end; }
+        .rating-stars input { display: none; }
+    </style>
+</head>
+<body>
+<div class="container pb-5">
+    <div class="form-card">
+        <div class="form-header">
+            <h2 class="mb-1">{{ form.title }}</h2>
+            {% if form.description %}<p class="mb-0 opacity-75">{{ form.description }}</p>{% endif %}
+        </div>
+        <div style="background:white; border-radius: 0 0 12px 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.1);">
+            <form method="POST">
+                {% if not form.allow_anonymous %}
+                <div class="question-card">
+                    <label class="form-label fw-semibold">Your Name <span class="text-danger">*</span></label>
+                    <input type="text" name="respondent_name" class="form-control" required placeholder="Enter your full name">
+                </div>
+                {% else %}
+                <div class="question-card bg-light">
+                    <div class="d-flex align-items-center text-muted">
+                        <i class="fas fa-user-secret me-2"></i>
+                        <span class="small">This form accepts anonymous responses. Name is optional.</span>
+                    </div>
+                    <input type="text" name="respondent_name" class="form-control mt-2" placeholder="Your name (optional)">
+                </div>
+                {% endif %}
+
+                {% for q in questions %}
+                <div class="question-card">
+                    <label class="form-label fw-semibold">
+                        {{ loop.index }}. {{ q.question_text }}
+                    </label>
+
+                    {% if q.question_type == 'text' %}
+                        <textarea name="q_{{ q.id }}" class="form-control" rows="3" placeholder="Your answer..."></textarea>
+
+                    {% elif q.question_type == 'multiple_choice' %}
+                        {% if q.options %}
+                            {% set opts = q.options | tojson %}
+                            {% for opt in q.options | replace('[','') | replace(']','') | replace('"','') | replace("'", '') %}
+                            {% endfor %}
+                            {# Parse options from JSON string #}
+                            {% set option_list = q.options[1:-1].split('", "') %}
+                            {% for opt in option_list %}
+                            {% set clean_opt = opt.replace('"', '').strip() %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="q_{{ q.id }}"
+                                       value="{{ clean_opt }}" id="q{{ q.id }}_{{ loop.index }}">
+                                <label class="form-check-label" for="q{{ q.id }}_{{ loop.index }}">{{ clean_opt }}</label>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                    {% elif q.question_type == 'checkbox' %}
+                        {% if q.options %}
+                            {% set option_list = q.options[1:-1].split('", "') %}
+                            {% for opt in option_list %}
+                            {% set clean_opt = opt.replace('"', '').strip() %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="q_{{ q.id }}_cb"
+                                       value="{{ clean_opt }}" id="q{{ q.id }}_cb{{ loop.index }}">
+                                <label class="form-check-label" for="q{{ q.id }}_cb{{ loop.index }}">{{ clean_opt }}</label>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                    {% elif q.question_type == 'rating' %}
+                        <div class="rating-stars">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" name="q_{{ q.id }}" value="{{ i }}" id="star{{ q.id }}_{{ i }}">
+                            <label for="star{{ q.id }}_{{ i }}">★</label>
+                            {% endfor %}
+                        </div>
+                        <div class="text-muted small mt-1">1 = Poor, 5 = Excellent</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if not questions %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-info-circle me-1"></i> This form has no questions yet.
+                </div>
+                {% endif %}
+
+                <div class="d-grid mt-3">
+                    <button type="submit" class="btn btn-lg" style="background:#4f46e5;color:white;">
+                        <i class="fas fa-paper-plane me-2"></i> Submit Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

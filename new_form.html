@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}New Form – FeedbackHub{% endblock %}
+{% block content %}
+<div class="topbar">
+    <div>
+        <h1>Create New Form</h1>
+        <p class="text-muted mb-0">Set up your feedback form details</p>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-file-alt me-2 text-primary"></i>Form Details</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Form Title <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Course Feedback – Semester 1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description <span class="text-muted">(optional)</span></label>
+                        <textarea name="description" class="form-control" rows="3"
+                                  placeholder="Brief description of this feedback form..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="allow_anonymous"
+                                   id="anonCheck" checked>
+                            <label class="form-check-label fw-semibold" for="anonCheck">
+                                Allow anonymous responses
+                            </label>
+                            <div class="text-muted small">If off, respondents must enter their name.</div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i> Continue to Add Questions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

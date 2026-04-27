@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Edit Form – FeedbackHub{% endblock %}
+{% block content %}
+<div class="topbar">
+    <div>
+        <h1>{{ form.title }}</h1>
+        <p class="text-muted mb-0">Build your questions below</p>
+    </div>
+    <div>
+        <a href="{{ url_for('analytics', form_id=form.id) }}" class="btn btn-outline-success me-2">
+            <i class="fas fa-chart-bar me-1"></i> Analytics
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left: Add Question -->
+    <div class="col-md-5">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-plus-circle me-2 text-primary"></i>Add Question</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('add_question', form_id=form.id) }}" id="addQForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Question Text <span class="text-danger">*</span></label>
+                        <textarea name="question_text" class="form-control" rows="2" required
+                                  placeholder="e.g. How would you rate this course?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Question Type</label>
+                        <select name="question_type" class="form-select" id="qTypeSelect">
+                            <option value="text">📝 Open Text</option>
+                            <option value="multiple_choice">🔘 Multiple Choice</option>
+                            <option value="checkbox">☑️ Checkbox</option>
+                            <option value="rating">⭐ Rating (1–5)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="optionsGroup" style="display:none;">
+                        <label class="form-label fw-semibold">Options <span class="text-muted">(comma-separated)</span></label>
+                        <input type="text" name="options" class="form-control"
+                               placeholder="Option A, Option B, Option C">
+                        <div class="form-text">Separate each option with a comma.</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i> Add Question
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="small text-muted"><i class="fas fa-link me-1"></i> Share Link:</span>
+                    <a href="{{ url_for('respond', token=form.share_token) }}" target="_blank"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-1"></i> Open Form
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Questions List -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>Questions
+                    <span class="badge bg-primary ms-1">{{ questions | length }}</span>
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if questions %}
+                <div class="list-group list-group-flush">
+                    {% for q in questions %}
+                    <div class="list-group-item p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1 me-3">
+                                <div class="fw-semibold">{{ loop.index }}. {{ q.question_text }}</div>
+                                <div class="mt-1">
+                                    {% if q.question_type == 'text' %}
+                                        <span class="badge bg-info badge-type">📝 Open Text</span>
+                                    {% elif q.question_type == 'multiple_choice' %}
+                                        <span class="badge bg-warning text-dark badge-type">🔘 Multiple Choice</span>
+                                        {% if q.options %}
+                                        <span class="text-muted small ms-2">
+                                            {{ (q.options | tojson | replace('"','') | replace('[','') | replace(']','') | replace(',',', ')) }}
+                                        </span>
+                                        {% endif %}
+                                    {% elif q.question_type == 'checkbox' %}
+                                        <span class="badge bg-success badge-type">☑️ Checkbox</span>
+                                    {% elif q.question_type == 'rating' %}
+                                        <span class="badge bg-danger badge-type">⭐ Rating</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <form method="POST"
+                                  action="{{ url_for('delete_question', form_id=form.id, q_id=q.id) }}"
+                                  onsubmit="return confirm('Delete this question?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No questions yet. Add your first question on the left!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const sel = document.getElementById('qTypeSelect');
+const og = document.getElementById('optionsGroup');
+sel.addEventListener('change', () => {
+    og.style.display = ['multiple_choice','checkbox'].includes(sel.value) ? 'block' : 'none';
+});
+</script>
+{% endblock %}

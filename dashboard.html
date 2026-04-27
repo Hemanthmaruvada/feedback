@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – FeedbackHub{% endblock %}
+{% block content %}
+<div class="topbar">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="text-muted mb-0">Welcome back, <strong>{{ session.username }}</strong>!</p>
+    </div>
+    <a href="{{ url_for('new_form') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Create New Form
+    </a>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="text-muted small mb-1"><i class="fas fa-file-alt me-1"></i> Total Forms</div>
+            <div class="number">{{ forms | length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="text-muted small mb-1"><i class="fas fa-inbox me-1"></i> Total Responses</div>
+            <div class="number">{{ forms | sum(attribute='response_count') }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="text-muted small mb-1"><i class="fas fa-check-circle me-1"></i> Active Forms</div>
+            <div class="number">{{ forms | length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="text-muted small mb-1"><i class="fas fa-user me-1"></i> Admin</div>
+            <div class="number" style="font-size:1.2rem;margin-top:4px;">{{ session.username }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Forms Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>Your Forms</h6>
+        <a href="{{ url_for('new_form') }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i> New</a>
+    </div>
+    <div class="card-body p-0">
+        {% if forms %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background:#f8f9fc;">
+                    <tr>
+                        <th class="ps-4">Form Title</th>
+                        <th>Responses</th>
+                        <th>Share Link</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for form in forms %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-semibold">{{ form.title }}</div>
+                        <div class="text-muted small">{{ form.description[:50] if form.description else 'No description' }}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary rounded-pill">{{ form.response_count }}</span>
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm" style="max-width:220px;">
+                            <input type="text" class="form-control form-control-sm"
+                                   value="{{ request.host_url }}respond/{{ form.share_token }}"
+                                   id="link-{{ form.id }}" readonly>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="copyLink('link-{{ form.id }}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="text-muted small">{{ form.created_at[:10] }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_form', form_id=form.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{{ url_for('analytics', form_id=form.id) }}" class="btn btn-sm btn-outline-success me-1">
+                            <i class="fas fa-chart-bar"></i>
+                        </a>
+                        <a href="{{ url_for('export_csv', form_id=form.id) }}" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_form', form_id=form.id) }}" class="d-inline"
+                              onsubmit="return confirm('Delete this form and all responses?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No forms yet</h5>
+            <p class="text-muted">Create your first feedback form to get started!</p>
+            <a href="{{ url_for('new_form') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Create Form
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyLink(id) {
+    const el = document.getElementById(id);
+    el.select();
+    document.execCommand('copy');
+    alert('Link copied to clipboard!');
+}
+</script>
+{% endblock %}
